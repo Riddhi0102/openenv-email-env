@@ -1,17 +1,12 @@
-name: email-triage-env
-description: Real-world email triage environment for AI agents
-version: 1.0
-
+name: openenv-email-env
 entrypoint: env.environment:EmailEnv
 
 tasks:
   - name: easy
-    description: Reply to urgent email
-  - name: medium
-    description: Reply quickly with fewer steps
-  - name: hard
-    description: Efficient email handling
+    grader: env.tasks:grade_easy
 
-observation_type: Observation
-action_type: Action
-reward_type: float
+  - name: medium
+    grader: env.tasks:grade_medium
+
+  - name: hard
+    grader: env.tasks:grade_hard
