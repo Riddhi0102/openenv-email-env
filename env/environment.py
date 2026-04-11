@@ -1,48 +1,47 @@
-from .models import Email, Observation, Action
+from typing import Any, Dict
+from .models import Action
 
 
 class EmailEnv:
 
     def __init__(self):
-        self.reset()
+        self.sent_emails = []
 
+    # REQUIRED
     def reset(self):
+        self.sent_emails = []
+        return {}
 
-        self.inbox = [
-            Email(
-                id="1",
-                sender="boss@company.com",
-                subject="Urgent meeting",
-                body="Join immediately",
-                urgency=5,
-                requires_reply=True
-            )
-        ]
-
-        self.responses = {}
-        self.step_count = 0
-
-        return self.state()
-
-    def state(self):
-        return Observation(
-            inbox=self.inbox,
-            drafted_responses=self.responses,
-            step_count=self.step_count
-        )
-
+    # REQUIRED
     def step(self, action: Action):
-
-        reward = 0
-        done = False
-
-        self.step_count += 1
-
         if action.type == "reply":
-            self.responses[action.email_id] = action.content
-            reward = 1.0
+            self.sent_emails.append(action.content)
 
-        if self.step_count >= 3:
-            done = True
+        reward = 0.0
+        done = len(self.sent_emails) >= 3
 
-        return self.state(), reward, done, {}
+        return {}, reward, done, {}
+
+    # REQUIRED
+    def state(self) -> Dict[str, Any]:
+        return {
+            "sent_emails": self.sent_emails
+        }
+
+    # IMPORTANT — validator reads this
+    @staticmethod
+    def tasks():
+        return [
+            {
+                "name": "easy",
+                "grader": "env.tasks:grade_easy"
+            },
+            {
+                "name": "medium",
+                "grader": "env.tasks:grade_medium"
+            },
+            {
+                "name": "hard",
+                "grader": "env.tasks:grade_hard"
+            }
+        ]
