@@ -1,23 +1,44 @@
-from env.environment import EmailEnv
-from env.models import Action
-from env.tasks import grade_easy, grade_medium, grade_hard
+import requests
+import sys
 
-env = EmailEnv()
-obs = env.reset()
+BASE = "http://localhost:7860"
 
-done = False
+def main():
+    task = "email_env"
 
-while not done:
-    action = Action(
-        type="reply",
-        email_id="1",
-        content="ok"
+    print(f"[START] task={task}", flush=True)
+
+    # reset
+    r = requests.post(f"{BASE}/reset")
+    obs = r.json()
+
+    done = False
+    step = 0
+    total_reward = 0
+
+    while not done and step < 5:
+        action = {
+            "type": "reply",
+            "email_id": "1",
+            "content": "Confirmed"
+        }
+
+        r = requests.post(f"{BASE}/step", json=action)
+        data = r.json()
+
+        reward = data["reward"]
+        done = data["done"]
+
+        step += 1
+        total_reward += reward
+
+        print(f"[STEP] step={step} reward={reward}", flush=True)
+
+    print(
+        f"[END] task={task} score={total_reward} steps={step}",
+        flush=True
     )
 
-    obs, reward, done, _ = env.step(action)
 
-state = env.state()
-
-print("Easy score:", grade_easy(state))
-print("Medium score:", grade_medium(state))
-print("Hard score:", grade_hard(state))
+if __name__ == "__main__":
+    main()
